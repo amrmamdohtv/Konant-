@@ -50,6 +50,26 @@
         "createdAt": { "type": "string", "description": "تاريخ الطلب" }
       },
       "required": ["serviceId", "serviceTitle", "requesterName", "requesterContact", "status"]
+    },
+    "SubscriptionRequest": {
+      "title": "SubscriptionRequest",
+      "description": "طلب اشتراك في إحدى باقات المنصة وخطة الدفع",
+      "type": "object",
+      "properties": {
+        "memberId": { "type": "string", "description": "معرف العضو" },
+        "memberName": { "type": "string", "description": "اسم العضو" },
+        "memberContact": { "type": "string", "description": "وسيلة التواصل" },
+        "plan": { "type": "string", "enum": ["pro", "vip"], "description": "الباقة المطلوبة" },
+        "billingCycle": { "type": "string", "enum": ["monthly", "annual"], "description": "دورة الفوترة" },
+        "amount": { "type": "number", "description": "المبلغ المطلوب بالجنية المصري" },
+        "paymentMethod": { "type": "string", "enum": ["vodafone_cash", "instapay"], "description": "طريقة الدفع" },
+        "paymentSenderInfo": { "type": "string", "description": "بيانات المحفظة أو المعرف المحول منه" },
+        "transactionRef": { "type": "string", "description": "رقم مرجع التحويل أو المعاملة" },
+        "status": { "type": "string", "enum": ["pending", "approved", "rejected"], "description": "حالة طلب الاشتراك" },
+        "createdAt": { "type": "string", "description": "تاريخ الطلب" },
+        "reviewedAt": { "type": "string", "description": "تاريخ المراجعة" }
+      },
+      "required": ["memberId", "memberName", "plan", "amount", "paymentMethod", "status"]
     }
   },
   "firestore": {
@@ -64,6 +84,10 @@
     "/orders/{orderId}": {
       "schema": "Order",
       "description": "طلبات الخدمات"
+    },
+    "/subscriptions/{subId}": {
+      "schema": "SubscriptionRequest",
+      "description": "طلبات اشتراكات المنصة"
     }
   }
 }

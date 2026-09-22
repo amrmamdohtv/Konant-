@@ -12,11 +12,12 @@ import {
   where
 } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from '../firebase';
-import { Member, Service, Order } from '../types';
+import { Member, Service, Order, SubscriptionRequest } from '../types';
 
 const MEMBERS_COLLECTION = 'members';
 const SERVICES_COLLECTION = 'services';
 const ORDERS_COLLECTION = 'orders';
+const SUBSCRIPTIONS_COLLECTION = 'subscriptions';
 
 // Initial seed data from user examples
 const INITIAL_MEMBERS: Omit<Member, 'id'>[] = [
@@ -64,6 +65,7 @@ const INITIAL_SERVICES: Omit<Service, 'id'>[] = [
     providerName: 'كريم المنشاوي',
     governorate: 'القاهرة',
     price: 'مجانًا',
+    paymentMethod: 'free',
     description: 'قضاء يوم كامل في استكشاف المقاهي القديمة والمكتبات والحديث عن الثقافة والتاريخ.',
     status: 'active',
     createdAt: new Date().toISOString(),
@@ -73,6 +75,8 @@ const INITIAL_SERVICES: Omit<Service, 'id'>[] = [
     providerName: 'سارة عبد الرحمن',
     governorate: 'الجيزة',
     price: '150 ج.م',
+    paymentMethod: 'vodafone_cash',
+    paymentDetails: '01012345678 (فودافون كاش)',
     description: 'تنظيم إيميلات، ترتيب ملفات، حجز مواعيد ومرافقة لاجتماعات العمل لتنظيم اليوم.',
     status: 'active',
     createdAt: new Date().toISOString(),
@@ -82,6 +86,7 @@ const INITIAL_SERVICES: Omit<Service, 'id'>[] = [
     providerName: 'عمر شريف',
     governorate: 'الإسكندرية',
     price: 'مجانًا',
+    paymentMethod: 'free',
     description: 'جلسة ألعاب ممتعة وتحديات تنافسية مع تجربة مرحة وشرح أسرار الألعاب.',
     status: 'active',
     createdAt: new Date().toISOString(),
@@ -91,6 +96,7 @@ const INITIAL_SERVICES: Omit<Service, 'id'>[] = [
     providerName: 'طارق حسام',
     governorate: 'القاهرة',
     price: 'مجانًا',
+    paymentMethod: 'free',
     description: 'التحفيز على أداء التمارين في الجيم أو الجري المفتوح ومتابعة جدول التدريب.',
     status: 'active',
     createdAt: new Date().toISOString(),
@@ -100,6 +106,7 @@ const INITIAL_SERVICES: Omit<Service, 'id'>[] = [
     providerName: 'نور الدين',
     governorate: 'الجيزة',
     price: 'مجانًا',
+    paymentMethod: 'cash',
     description: 'إذا كان لديك تذكرة إضافية أو لا ترغب بالذهاب بمفردك، أرافقك ونستمتع بالأجواء معًا.',
     status: 'active',
     createdAt: new Date().toISOString(),
@@ -109,6 +116,8 @@ const INITIAL_SERVICES: Omit<Service, 'id'>[] = [
     providerName: 'كريم المنشاوي',
     governorate: 'القاهرة',
     price: '200 ج.م',
+    paymentMethod: 'instapay',
+    paymentDetails: 'karim.lens@instapay (إنستاباي)',
     description: 'تصوير احترافي لمدة ساعتين مع تعديل أفضل 15 صورة بجودة عالية.',
     status: 'active',
     createdAt: new Date().toISOString(),
@@ -252,6 +261,82 @@ export async function updateOrderStatus(id: string, status: Order['status']) {
   try {
     const docRef = doc(db, ORDERS_COLLECTION, id);
     await updateDoc(docRef, { status });
+  } catch (error) {
+    handleFirestoreError(error, OperationType.UPDATE, path);
+  }
+}
+
+// SUBSCRIPTIONS
+export async function getSubscriptions(): Promise<SubscriptionRequest[]> {
+  try {
+    const snap = await getDocs(collection(db, SUBSCRIPTIONS_COLLECTION));
+    return snap.docs.map((d) => ({ id: d.id, ...d.data() } as SubscriptionRequest));
+  } catch (error) {
+    handleFirestoreError(error, OperationType.GET, SUBSCRIPTIONS_COLLECTION);
+    return [];
+  }
+}
+
+export async function createSubscriptionRequest(
+  data: Omit<SubscriptionRequest, 'id' | 'status' | 'createdAt'>
+): Promise<string> {
+  const path = SUBSCRIPTIONS_COLLECTION;
+  try {
+    const newSub = {
+      ...data,
+      status: 'pending',
+      createdAt: new Date().toISOString(),
+    };
+    const ref = await addDoc(collection(db, path), newSub);
+    return ref.id;
+  } catch (error) {
+    handleFirestoreError(error, OperationType.CREATE, path);
+    return '';
+  }
+}
+
+export async function updateSubscriptionStatus(
+  subId: string,
+  status: 'approved' | 'rejected',
+  memberId?: string,
+  plan?: 'pro' | 'vip',
+  billingCycle?: 'monthly' | 'annual'
+) {
+  const path = `${SUBSCRIPTIONS_COLLECTION}/${subId}`;
+  try {
+    const docRef = doc(db, SUBSCRIPTIONS_COLLECTION, subId);
+    await updateDoc(docRef, { 
+      status,
+      reviewedAt: new Date().toISOString()
+    });
+
+    // If approved, update member's plan
+    if (status === 'approved' && memberId && plan) {
+      const expiry = new Date();
+      if (billingCycle === 'annual') {
+        expiry.setFullYear(expiry.getFullYear() + 1);
+      } else {
+        expiry.setMonth(expiry.getMonth() + 1);
+      }
+      await updateMemberPlan(memberId, plan, expiry.toISOString());
+    }
+  } catch (error) {
+    handleFirestoreError(error, OperationType.UPDATE, path);
+  }
+}
+
+export async function updateMemberPlan(
+  memberId: string,
+  plan: 'free' | 'pro' | 'vip',
+  planExpiresAt?: string
+) {
+  const path = `${MEMBERS_COLLECTION}/${memberId}`;
+  try {
+    const docRef = doc(db, MEMBERS_COLLECTION, memberId);
+    await updateDoc(docRef, {
+      plan,
+      ...(planExpiresAt ? { planExpiresAt } : {})
+    });
   } catch (error) {
     handleFirestoreError(error, OperationType.UPDATE, path);
   }

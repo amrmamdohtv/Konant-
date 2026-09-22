@@ -43,6 +43,14 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
+    // Subscriptions collection
+    match /subscriptions/{subId} {
+      allow read: if true;
+      allow create: if true;
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
     // Global default deny
     match /{document=**} {
       allow read, write: if false;
