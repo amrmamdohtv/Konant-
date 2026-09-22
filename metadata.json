@@ -1,0 +1,6 @@
+{
+  "name": "رفيق - مجتمع تبادل الخدمات والتجارب",
+  "description": "منصة بسيطة لتبادل وطلب الخدمات والتجارب الشخصية والترفيهية بين أعضاء المجتمع",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

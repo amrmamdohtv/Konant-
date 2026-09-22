@@ -1,0 +1,69 @@
+{
+  "entities": {
+    "Member": {
+      "title": "Member",
+      "description": "عضو في المجتمع مع تفاصيل ما يقدمه وما يحتاجه",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "معرف المستخدم" },
+        "name": { "type": "string", "description": "اسم العضو" },
+        "governorate": { "type": "string", "description": "المحافظة" },
+        "photoUrl": { "type": "string", "description": "رابط الصورة الشخصية الاختيارية" },
+        "canOffer": { "type": "string", "description": "ماذا أستطيع أن أقدم" },
+        "needs": { "type": "string", "description": "ماذا أحتاج" },
+        "contact": { "type": "string", "description": "وسيلة تواصل" },
+        "rating": { "type": "number", "description": "تقييم العضو" },
+        "ratingCount": { "type": "number", "description": "عدد التقييمات" },
+        "status": { "type": "string", "enum": ["active", "suspended"], "description": "حالة العضو" },
+        "createdAt": { "type": "string", "description": "تاريخ التسجيل" }
+      },
+      "required": ["name", "governorate", "canOffer", "needs", "contact", "status"]
+    },
+    "Service": {
+      "title": "Service",
+      "description": "خدمة أو تجربة معروضة في المجتمع",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string", "description": "اسم الخدمة أو التجربة" },
+        "providerName": { "type": "string", "description": "اسم مقدم الخدمة" },
+        "providerId": { "type": "string", "description": "معرف مقدم الخدمة" },
+        "governorate": { "type": "string", "description": "المحافظة" },
+        "price": { "type": "string", "description": "السعر أو مجانًا" },
+        "description": { "type": "string", "description": "تفاصيل الخدمة" },
+        "status": { "type": "string", "enum": ["active", "hidden"], "description": "حالة الخدمة" },
+        "createdAt": { "type": "string", "description": "تاريخ الإضافة" }
+      },
+      "required": ["title", "providerName", "governorate", "price", "status"]
+    },
+    "Order": {
+      "title": "Order",
+      "description": "طلب خدمة من عضو لآخر",
+      "type": "object",
+      "properties": {
+        "serviceId": { "type": "string", "description": "معرف الخدمة المطلوبة" },
+        "serviceTitle": { "type": "string", "description": "اسم الخدمة" },
+        "providerId": { "type": "string", "description": "معرف مقدم الخدمة" },
+        "requesterName": { "type": "string", "description": "اسم مقدم الطلب" },
+        "requesterContact": { "type": "string", "description": "وسيلة تواصل مقدم الطلب" },
+        "notes": { "type": "string", "description": "ملاحظات إضافية" },
+        "status": { "type": "string", "enum": ["pending", "approved", "rejected", "completed"], "description": "حالة الطلب" },
+        "createdAt": { "type": "string", "description": "تاريخ الطلب" }
+      },
+      "required": ["serviceId", "serviceTitle", "requesterName", "requesterContact", "status"]
+    }
+  },
+  "firestore": {
+    "/members/{memberId}": {
+      "schema": "Member",
+      "description": "سجلات أعضاء المجتمع"
+    },
+    "/services/{serviceId}": {
+      "schema": "Service",
+      "description": "قائمة الخدمات والتجارب المعروضة"
+    },
+    "/orders/{orderId}": {
+      "schema": "Order",
+      "description": "طلبات الخدمات"
+    }
+  }
+}

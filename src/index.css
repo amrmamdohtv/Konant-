@@ -1,0 +1,34 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    font-family: 'Alexandria', -apple-system, BlinkMacSystemFont, sans-serif;
+    background-color: #08090d;
+    color: #e4e4e7;
+  }
+}
+
+.gothic-title {
+  font-family: 'Alexandria', sans-serif;
+  letter-spacing: -0.02em;
+}
+
+.cinzel-font {
+  font-family: 'Cinzel', serif;
+}
+
+/* Custom cyber-gothic subtle scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #090a0f;
+}
+::-webkit-scrollbar-thumb {
+  background: #27272a;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #a855f7;
+}
